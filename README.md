@@ -34,6 +34,36 @@ Akka changed to a Business Source License (BSL) in 2022, making it non-free for 
 - **Type safety** — Scala 3's type system catches errors at compile time; case classes and sealed traits model the domain precisely
 - **Non-blocking I/O** — Play and Pekko are async-first, handling many concurrent connections on few threads
 
+## Project Structure
+
+```
+src/
+├── main/
+│   ├── java/org/myapps/shoppinglistservice/
+│   │   ├── Application.java
+│   │   ├── controller/
+│   │   │   └── CustomerController.java
+│   │   ├── model/
+│   │   │   ├── Customer.java
+│   │   │   ├── Item.java
+│   │   │   └── ShoppingList.java
+│   │   ├── service/
+│   │   │   ├── CustomerService.java
+│   │   │   ├── CustomerServiceImpl.java
+│   │   │   ├── ShoppingListService.java
+│   │   │   └── ShoppingCartServiceImpl.java
+│   │   └── repo/
+│   │       ├── CustomerRepository.java
+│   │       ├── ItemsRepository.java
+│   │       └── ShoppingListRepository.java
+│   └── resources/
+│       └── application.properties
+└── test/
+    └── scala/org/myapps/shoppinglistservice/
+        └── controller/
+            └── CustomerControllerSpec.scala
+```
+
 ## Project Status
 
 🚧 **Work in progress** — migrating from a Java/Spring Boot prototype to idiomatic Scala.
