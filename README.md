@@ -167,6 +167,75 @@ curl -X POST http://localhost:9000/api/v1/shopping-list \
 curl http://localhost:9000/api/v1/shopping-list/hello@example.com
 ```
 
+## Database Configuration
+
+The application uses [Play Evolutions](https://www.playframework.com/documentation/3.0.x/Evolutions) for schema management and JDBC for database access. Schema migrations live in `conf/evolutions/default/`.
+
+### Current Setup (Local Development)
+
+H2 in-memory database running in **PostgreSQL compatibility mode**:
+
+```hocon
+db.default.driver = org.h2.Driver
+db.default.url = "jdbc:h2:mem:shoppinglist;DB_CLOSE_DELAY=-1;MODE=PostgreSQL"
+db.default.username = "sa"
+db.default.password = ""
+```
+
+- `DB_CLOSE_DELAY=-1` — keeps the in-memory DB alive for the lifetime of the JVM
+- `MODE=PostgreSQL` — ensures SQL syntax compatibility so the same evolutions and queries work against both H2 and PostgreSQL
+- `play.evolutions.db.default.autoApply = true` — applies pending migrations automatically on startup
+
+### Switching to PostgreSQL (Production)
+
+Override the database config via environment variables or a separate config file:
+
+```hocon
+db.default.driver = org.postgresql.Driver
+db.default.url = ${DB_URL}
+db.default.username = ${DB_USERNAME}
+db.default.password = ${DB_PASSWORD}
+```
+
+Add the PostgreSQL driver dependency in `build.sbt`:
+
+```scala
+"org.postgresql" % "postgresql" % "42.7.3"
+```
+
+### Per-Environment Configuration
+
+Play supports environment-specific config files that override the base `application.conf`:
+
+| File | Purpose | How to activate |
+|------|---------|-----------------|
+| `conf/application.conf` | Base config (H2 dev defaults) | Always loaded |
+| `conf/production.conf` | Production overrides (PostgreSQL) | `-Dconfig.resource=production.conf` |
+| `conf/integration-test.conf` | Integration test overrides | `-Dconfig.resource=integration-test.conf` |
+
+Example `conf/production.conf`:
+
+```hocon
+include "application.conf"
+
+db.default.driver = org.postgresql.Driver
+db.default.url = ${DB_URL}
+db.default.username = ${DB_USERNAME}
+db.default.password = ${DB_PASSWORD}
+
+play.evolutions.db.default.autoApply = false
+```
+
+Run with: `sbt "run -Dconfig.resource=production.conf"` or set `JAVA_OPTS=-Dconfig.resource=production.conf`.
+
+### File-Based H2 (Persistent Local Dev)
+
+To persist data across restarts without a full database server:
+
+```hocon
+db.default.url = "jdbc:h2:./data/shoppinglist;MODE=PostgreSQL"
+```
+
 ## How To Test
 
 ### Unit tests
