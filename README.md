@@ -2,6 +2,31 @@
 
 A web application for managing shopping lists — built as a personal, independent alternative to existing shopping list apps.
 
+## Table of Contents
+
+- [Overview](#overview)
+- [Tech Stack](#tech-stack)
+  - [Why Apache Pekko over Akka?](#why-apache-pekko-over-akka)
+  - [Key Features of the Stack](#key-features-of-the-stack)
+- [Project Structure](#project-structure)
+- [How To Run](#how-to-run)
+- [API](#api)
+  - [Create Customer](#create-customer)
+  - [Get Customer by Email](#get-customer-by-email)
+  - [Create Shopping List](#create-shopping-list)
+  - [Get Shopping List](#get-shopping-list)
+  - [Examples](#examples)
+- [Database Configuration](#database-configuration)
+  - [Current Setup (Local Development)](#current-setup-local-development)
+  - [Switching to PostgreSQL (Production)](#switching-to-postgresql-production)
+  - [Per-Environment Configuration](#per-environment-configuration)
+  - [File-Based H2 (Persistent Local Dev)](#file-based-h2-persistent-local-dev)
+- [How To Test](#how-to-test)
+  - [Unit tests](#unit-tests)
+  - [Functional tests](#functional-tests)
+  - [Manual testing](#manual-testing)
+- [Project Status](#project-status)
+
 ## Overview
 
 A backend + frontend service that allows users to:
