@@ -6,7 +6,7 @@ import play.api.libs.json.*
 import play.api.test.*
 import play.api.test.Helpers.*
 
-class ShoppingListSpecFunctionalTest extends PlaySpec with GuiceOneAppPerSuite {
+class ShoppingListFunctionalTest extends PlaySpec with GuiceOneAppPerSuite {
 
   "ShoppingListController" should {
 
