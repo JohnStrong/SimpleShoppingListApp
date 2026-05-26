@@ -2,26 +2,28 @@ package services
 
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatest.matchers.should.Matchers
+import org.scalatest.concurrent.ScalaFutures
 import models.Customer
+import repositories.customer.CustomerRepository
 
-class CustomerServiceImplSpec extends AnyWordSpec with Matchers {
+class CustomerServiceImplSpec extends AnyWordSpec with Matchers with ScalaFutures {
 
-  private def freshService() = new CustomerServiceImpl()
+  private def freshService() = new CustomerServiceImpl(new CustomerRepository())
 
   "createCustomer" should {
 
     "return Right with new customer on success" in {
       val service = freshService()
-      val result = service.createCustomer("new@example.com")
+      val result = service.createCustomer("new@example.com").futureValue
 
       result shouldBe Right(Customer("new@example.com"))
     }
 
     "return Left with error when email already exists" in {
       val service = freshService()
-      service.createCustomer("dup@example.com")
+      service.createCustomer("dup@example.com").futureValue
 
-      val result = service.createCustomer("dup@example.com")
+      val result = service.createCustomer("dup@example.com").futureValue
 
       result shouldBe a[Left[_, _]]
       result.left.toOption.get should include("already exists")
@@ -32,16 +34,16 @@ class CustomerServiceImplSpec extends AnyWordSpec with Matchers {
 
     "return Right with customer when found" in {
       val service = freshService()
-      service.createCustomer("find@example.com")
+      service.createCustomer("find@example.com").futureValue
 
-      val result = service.findByEmail("find@example.com")
+      val result = service.findByEmail("find@example.com").futureValue
 
       result shouldBe Right(Customer("find@example.com"))
     }
 
     "return Left with error when not found" in {
       val service = freshService()
-      val result = service.findByEmail("nonexistent@example.com")
+      val result = service.findByEmail("nonexistent@example.com").futureValue
 
       result shouldBe a[Left[_, _]]
       result.left.toOption.get should include("not found")

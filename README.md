@@ -9,6 +9,7 @@ A web application for managing shopping lists — built as a personal, independe
   - [Why Apache Pekko over Akka?](#why-apache-pekko-over-akka)
   - [Key Features of the Stack](#key-features-of-the-stack)
 - [Project Structure](#project-structure)
+- [Service Flow](#service-flow)
 - [How To Run](#how-to-run)
 - [API](#api)
   - [Create Customer](#create-customer)
@@ -72,9 +73,14 @@ app/
 │   ├── ShoppingListItem.scala                  # ShoppingListItem case class + JSON format
 │   └── requests/
 │       └── ShoppingListCreateRequest.scala     # Create shopping list request DTO
+├── repositories/
+│   ├── DataRepository.scala                    # Base trait: async CRUD contract
+│   ├── InMemoryDataRepository.scala            # In-memory HashMap-backed trait
+│   └── customer/
+│       └── CustomerRepository.scala            # Concrete in-memory customer repo
 ├── services/
-│   ├── Customer.scala                          # Customer service trait + in-memory impl
-│   └── ShoppingList.scala                      # Shopping list service trait + in-memory impl
+│   ├── Customer.scala                          # Customer service trait + impl
+│   └── ShoppingList.scala                      # Shopping list service trait + impl
 └── Module.scala                                # Guice DI bindings
 conf/
 ├── application.conf                            # Play/Pekko config (HOCON)
@@ -98,6 +104,52 @@ functional-tests/
     ├── CustomerServiceFunctionalTest.scala     # Customer API end-to-end tests
     └── ShoppingListFunctionalTest.scala        # Shopping list API end-to-end tests
 ```
+
+## Service Flow
+
+Requests flow through three layers, each with a single responsibility:
+
+```
+HTTP Request
+     │
+     ▼
+┌─────────────────────────────────────────────────────────┐
+│  Routes (conf/routes)                                   │
+│  Maps HTTP method + path → controller action            │
+└────────────────────────────┬────────────────────────────┘
+                             │
+                             ▼
+┌─────────────────────────────────────────────────────────┐
+│  Controller (e.g. CustomerController)                   │
+│  • Parses/validates the request                         │
+│  • Calls the service layer                              │
+│  • Maps Future[Either[Error, Entity]] → HTTP Result     │
+│  • Returns Future[Result] to Play (non-blocking)        │
+└────────────────────────────┬────────────────────────────┘
+                             │
+                             ▼
+┌─────────────────────────────────────────────────────────┐
+│  Service (e.g. CustomerServiceImpl)                     │
+│  • Business logic and orchestration                     │
+│  • Delegates persistence to the repository              │
+│  • Returns Future[Either[String, Entity]]               │
+└────────────────────────────┬────────────────────────────┘
+                             │
+                             ▼
+┌─────────────────────────────────────────────────────────┐
+│  Repository (DataRepository trait)                      │
+│  ┌───────────────────┐  ┌────────────────────────────┐  │
+│  │ InMemoryDataRepo  │  │ SlickRepo (future: H2 /    │  │
+│  │ (HashMap, dev)    │  │ PostgreSQL via play-slick)  │  │
+│  └───────────────────┘  └────────────────────────────┘  │
+└─────────────────────────────────────────────────────────┘
+```
+
+**Key design decisions:**
+
+- **Async everywhere** — every layer returns `Future`, so no thread blocks waiting for I/O. Play writes the HTTP response only when the Future completes.
+- **Either for errors** — domain errors (not found, already exists) are encoded as `Left(message)` rather than thrown exceptions, making error paths explicit and composable.
+- **Swappable repositories** — the `DataRepository` trait defines the contract; Guice bindings in `Module.scala` select the concrete implementation (in-memory for dev/test, database-backed for production).
 
 ## How To Run
 

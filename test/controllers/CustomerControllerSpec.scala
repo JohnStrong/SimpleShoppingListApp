@@ -12,10 +12,13 @@ import org.apache.pekko.stream.Materializer
 import services.CustomerService
 import models.Customer
 
+import scala.concurrent.{ExecutionContext, Future}
+
 class CustomerControllerSpec extends AnyWordSpec with Matchers {
 
   implicit private val system: ActorSystem = ActorSystem("test")
   implicit private val mat: Materializer = Materializer.matFromSystem
+  implicit private val ec: ExecutionContext = ExecutionContext.global
 
   private def createFixture() = {
     val mockService = mock(classOf[CustomerService])
@@ -30,7 +33,7 @@ class CustomerControllerSpec extends AnyWordSpec with Matchers {
 
     "return 200 with customer JSON when found" in {
       val (controller, mockService) = createFixture()
-      when(mockService.findByEmail("test@example.com")).thenReturn(Right(testCustomer))
+      when(mockService.findByEmail("test@example.com")).thenReturn(Future.successful(Right(testCustomer)))
 
       val result = controller.getCustomerByEmail("test@example.com").apply(FakeRequest())
 
@@ -41,7 +44,7 @@ class CustomerControllerSpec extends AnyWordSpec with Matchers {
     "return 404 when customer not found" in {
       val (controller, mockService) = createFixture()
       when(mockService.findByEmail("missing@example.com"))
-        .thenReturn(Left("Customer with email missing@example.com not found."))
+        .thenReturn(Future.successful(Left("Customer with email missing@example.com not found.")))
 
       val result = controller.getCustomerByEmail("missing@example.com").apply(FakeRequest())
 
@@ -54,7 +57,7 @@ class CustomerControllerSpec extends AnyWordSpec with Matchers {
 
     "return 201 with customer JSON on success" in {
       val (controller, mockService) = createFixture()
-      when(mockService.createCustomer("new@example.com")).thenReturn(Right(testCustomer))
+      when(mockService.createCustomer("new@example.com")).thenReturn(Future.successful(Right(testCustomer)))
 
       val request = FakeRequest(POST, "/")
         .withHeaders("Content-Type" -> "application/json")
@@ -79,7 +82,7 @@ class CustomerControllerSpec extends AnyWordSpec with Matchers {
     "return 409 when customer already exists" in {
       val (controller, mockService) = createFixture()
       when(mockService.createCustomer("exists@example.com"))
-        .thenReturn(Left("Customer with email exists@example.com already exists."))
+        .thenReturn(Future.successful(Left("Customer with email exists@example.com already exists.")))
 
       val request = FakeRequest(POST, "/")
         .withHeaders("Content-Type" -> "application/json")
