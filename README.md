@@ -76,8 +76,10 @@ app/
 ├── repositories/
 │   ├── DataRepository.scala                    # Base trait: async CRUD contract
 │   ├── InMemoryDataRepository.scala            # In-memory HashMap-backed trait
-│   └── customer/
-│       └── CustomerRepository.scala            # Concrete in-memory customer repo
+│   ├── customer/
+│   │   └── CustomerRepository.scala            # Concrete in-memory customer repo
+│   └── shoppinglist/
+│       └── ShoppingListRepository.scala        # Concrete in-memory shopping list repo
 ├── services/
 │   ├── Customer.scala                          # Customer service trait + impl
 │   └── ShoppingList.scala                      # Shopping list service trait + impl
@@ -96,6 +98,11 @@ test/
 ├── models/
 │   ├── CustomerModelSpec.scala
 │   └── ShoppingListItemModelSpec.scala
+├── repositories/
+│   ├── customer/
+│   │   └── CustomerRepositorySpec.scala
+│   └── shoppinglist/
+│       └── ShoppingListRepositorySpec.scala
 └── services/
     ├── CustomerServiceImplSpec.scala
     └── ShoppingListServiceImplSpec.scala
