@@ -1,8 +1,9 @@
-import models.Customer
+import models.{Customer, ShoppingList}
 import services.{CustomerService, CustomerServiceImpl, ShoppingListService, ShoppingListServiceImpl}
 import com.google.inject.{AbstractModule, TypeLiteral}
 import repositories.DataRepository
 import repositories.customer.CustomerRepository
+import repositories.shoppinglist.ShoppingListRepository
 
 class Module extends AbstractModule {
   override def configure(): Unit = {
@@ -16,6 +17,7 @@ class Module extends AbstractModule {
     /**
      * Shopping List
      */
+    bind(new TypeLiteral[DataRepository[String, ShoppingList]]() {}).to(classOf[ShoppingListRepository])
     bind(classOf[ShoppingListService]).to(classOf[ShoppingListServiceImpl])
   }
 }

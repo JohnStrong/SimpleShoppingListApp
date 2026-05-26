@@ -1,6 +1,5 @@
 package services
 
-import scala.collection.mutable
 import javax.inject.*
 import models.Customer
 import repositories.DataRepository

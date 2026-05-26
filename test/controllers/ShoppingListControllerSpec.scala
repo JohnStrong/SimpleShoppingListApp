@@ -12,10 +12,13 @@ import org.apache.pekko.stream.Materializer
 import services.ShoppingListService
 import models.{ShoppingList, ShoppingListItem}
 
+import scala.concurrent.{ExecutionContext, Future}
+
 class ShoppingListControllerSpec extends AnyWordSpec with Matchers {
 
   implicit private val system: ActorSystem = ActorSystem("test")
   implicit private val mat: Materializer = Materializer.matFromSystem
+  implicit private val ec: ExecutionContext = ExecutionContext.global
 
   private def createFixture() = {
     val mockService = mock(classOf[ShoppingListService])
@@ -24,7 +27,7 @@ class ShoppingListControllerSpec extends AnyWordSpec with Matchers {
     (controller, mockService)
   }
 
-  private val testList = ShoppingList("Weekly Groceries", List(
+  private val testList = ShoppingList("test@example.com", "Weekly Groceries", List(
     ShoppingListItem("Milk", 2),
     ShoppingListItem("Bread", 1)
   ))
@@ -33,7 +36,7 @@ class ShoppingListControllerSpec extends AnyWordSpec with Matchers {
 
     "return 200 with shopping list JSON when found" in {
       val (controller, mockService) = createFixture()
-      when(mockService.getShoppingList("user@example.com")).thenReturn(Right(testList))
+      when(mockService.getShoppingList("user@example.com")).thenReturn(Future.successful(Right(testList)))
 
       val result = controller.getShoppingList("user@example.com").apply(FakeRequest())
 
@@ -51,7 +54,7 @@ class ShoppingListControllerSpec extends AnyWordSpec with Matchers {
     "return 404 when no shopping list exists" in {
       val (controller, mockService) = createFixture()
       when(mockService.getShoppingList("nobody@example.com"))
-        .thenReturn(Left("No shopping list found for email nobody@example.com."))
+        .thenReturn(Future.successful(Left("No shopping list found for email nobody@example.com.")))
 
       val result = controller.getShoppingList("nobody@example.com").apply(FakeRequest())
 
@@ -64,7 +67,7 @@ class ShoppingListControllerSpec extends AnyWordSpec with Matchers {
 
     "return 201 with shopping list JSON on success" in {
       val (controller, mockService) = createFixture()
-      when(mockService.create(anyString(), anyString(), any())).thenReturn(Right(testList))
+      when(mockService.create(anyString(), anyString(), any())).thenReturn(Future.successful(Right(testList)))
 
       val request = FakeRequest(POST, "/")
         .withHeaders("Content-Type" -> "application/json")
@@ -82,7 +85,7 @@ class ShoppingListControllerSpec extends AnyWordSpec with Matchers {
     "return 409 when shopping list already exists" in {
       val (controller, mockService) = createFixture()
       when(mockService.create(anyString(), anyString(), any()))
-        .thenReturn(Left("Shopping list already exists for email user@example.com"))
+        .thenReturn(Future.successful(Left("Shopping list already exists for email user@example.com")))
 
       val request = FakeRequest(POST, "/")
         .withHeaders("Content-Type" -> "application/json")
